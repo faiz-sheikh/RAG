@@ -28,3 +28,6 @@ checkpoints/
 ~$*
 .DS_Store
 Thumbs.db
+
+# Streamlit local secrets
+.streamlit/secrets.toml

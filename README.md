@@ -1,6 +1,6 @@
 # Retrieval-Augmented Generation - Day 2
 
-Classroom document-retrieval practicals using LangChain loaders, Hugging Face embeddings and FAISS. The goal is to find document chunks relevant to a question while preserving the original pipeline.
+Classroom document-retrieval notebooks and a Streamlit retrieval interface using LangChain loaders, Hugging Face embeddings and FAISS. The goal is to find document chunks relevant to a question while preserving the original pipeline.
 
 **Author:** [faiz-sheikh](https://github.com/faiz-sheikh)
 
@@ -8,7 +8,7 @@ Classroom document-retrieval practicals using LangChain loaders, Hugging Face em
 
 Retrieval-Augmented Generation (RAG) combines document retrieval with language-model generation. Its typical components are document loading, text splitting, embeddings, vector indexing, retrieval, and an LLM that uses retrieved context to generate an answer.
 
-**These notebooks implement retrieval only.** They print matching source chunks. No LLM-generated answers, chatbot, agents, user interface or advanced retrieval techniques are implemented.
+**The notebooks and Streamlit app implement retrieval only.** They display matching source chunks. The app is titled "C++ RAG Chatbot" as a classroom example, but it does not generate answers or maintain conversation history. LLM-based generation with Ollama/Gemma is planned for a later stage; agents and advanced retrieval techniques are not implemented.
 
 ## Notebooks and documents
 
@@ -19,7 +19,7 @@ Retrieval-Augmented Generation (RAG) combines document retrieval with language-m
 
 The supplied classroom reference documents remain beside the notebooks to preserve relative paths. Run with the repository root as the working directory. The C++ document is sample retrieval input, not a verified programming reference, and can contain inaccuracies. The research paper is [Attention Is All You Need](https://arxiv.org/abs/1706.03762), Vaswani et al. (2017); credit remains with its authors. No ownership of reference documents is claimed.
 
-## Actual workflow
+## Notebook workflow
 
 1. Load the PDF into page documents or load the UTF-8 text document.
 2. Split with `RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)`. These are character-based settings, not token counts; separators may produce shorter chunks.
@@ -41,8 +41,9 @@ Embeddings map text into vectors so retrieval can reflect semantic similarity be
 | `sentence-transformers` | Embedding model backend |
 | `faiss-cpu` | CPU vector indexing and search |
 | `ipykernel` | Notebook kernel |
+| `streamlit` | Browser interface for `chatBotDemo.py` |
 
-The local environment's Streamlit, Ollama and top-level `langchain` entries are unnecessary for the actual notebook imports and are omitted. Pip installs transitive dependencies.
+Streamlit is required by the new retrieval app. Ollama and the top-level `langchain` package are not used in this retrieval-only version. Pip installs transitive dependencies.
 
 ## Running in VS Code (Windows)
 
@@ -84,3 +85,26 @@ Both notebooks include outputs from successful top-to-bottom runs with the exist
 | `RAGTutorial.ipynb` | `What is inheritance?` | One text document loaded and four matching passages printed |
 
 The saved query is one example; rerunning the final cell still prompts for your own question. The classroom code, embedding model and 200/20 splitting settings are retained. Nonfatal local setup notices are excluded from the saved presentation; computed results are retained.
+
+## Streamlit retrieval app
+
+`chatBotDemo.py` exposes the C++ text-retrieval exercise through a small browser interface:
+
+```text
+CPP.txt → 200/20 character splitting → MiniLM embeddings → cached FAISS store
+Question → similarity search (k=3) → display three matching passages
+```
+
+The app uses `st.cache_resource` so the vector store is reused across reruns instead of rebuilding it on every question. This is an in-memory cache, not a persistent database. It reads the existing `CPP.txt`; there is no document upload in this app. Restart the app or clear its cache after replacing that source file.
+
+Run from this repository folder after installing requirements:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run chatBotDemo.py
+```
+
+Enter a question such as `What is inheritance?`. The app displays three retrieved context passages, without generating a combined answer. The first embedding run may require downloading the model; subsequent runs can use its local cache. No Ollama server or LLM API key is required for this stage.
+
+The classroom filename, embedding model, variable names, chunk size 200, overlap 20 and `k=3` are retained. The loader path uses `CPP.txt` to match the supplied document exactly, including case on Linux. The two original notebooks and their saved outputs are unchanged.
+
+The next learning stage is to pass retrieved context and the question to Ollama's `gemma2:2b` for a generated answer. That integration is not part of this commit. The separate 510-line assisted extension draft is not included.
